@@ -42,6 +42,9 @@ export default gql`
     isTaxable
     taxCode
     taxDescription
+    multipleOption
+    minOption
+    maxOption
   }
 `;
 
