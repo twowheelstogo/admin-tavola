@@ -25,6 +25,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const formSchema = new SimpleSchema({
+  "maxFreeQty": {
+    type: Number,
+    optional: true
+  },
   "price": {
     type: Number,
     optional: true
@@ -121,6 +125,20 @@ const VariantPricesForm = React.forwardRef((props, ref) => {
                   label={i18next.t("productVariant.compareAtPrice")}
                   placeholder="0.00"
                   {...getInputProps("compareAtPrice.amount", muiOptions)}
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={1}>
+              <Grid item sm={12}>
+                <TextField
+                  type="numeric"
+                  className={classes.textField}
+                  error={hasErrors(["maxFreeQty"])}
+                  fullWidth
+                  helperText={getFirstErrorMessage(["maxFreeQty"]) || i18next.t("admin.helpText.maxFreeQty")}
+                  label={i18next.t("productVariant.maxFreeQty")}
+                  placeholder="0"
+                  {...getInputProps("maxFreeQty", muiOptions)}
                 />
               </Grid>
             </Grid>
