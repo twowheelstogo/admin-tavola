@@ -31,6 +31,8 @@ export default gql`
       }
       price
       maxFreeQty
+      maxQty
+      minQty
     }
     shop {
       _id

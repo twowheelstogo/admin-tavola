@@ -11,6 +11,8 @@ export default gql`
           }
           price
           maxFreeQty
+          maxQty
+          minQty
         }
       }
     }
