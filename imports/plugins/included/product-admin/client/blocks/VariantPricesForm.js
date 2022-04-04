@@ -77,34 +77,32 @@ const VariantPricesForm = React.forwardRef((props, ref) => {
   const isSaveDisabled = !product || !isDirty || isSubmitting;
   const renderPrices = () => {
     return (
-      <div>
-        <Grid container spacing={1}>
-          <Grid item sm={6}>
-            <TextField
-              type="numeric"
-              className={classes.textField}
-              error={hasErrors(["price"])}
-              fullWidth
-              helperText={getFirstErrorMessage(["price"]) || i18next.t("admin.helpText.price")}
-              label={i18next.t("productVariant.price")}
-              placeholder="0.00"
-              {...getInputProps("price", muiOptions)}
-            />
-          </Grid>
-          <Grid item sm={6}>
-            <TextField
-              type="numeric"
-              className={classes.textField}
-              error={hasErrors(["compareAtPrice.amount"])}
-              fullWidth
-              helperText={getFirstErrorMessage(["compareAtPrice.amount"]) || i18next.t("admin.helpText.compareAtPrice")}
-              label={i18next.t("productVariant.compareAtPrice")}
-              placeholder="0.00"
-              {...getInputProps("compareAtPrice.amount", muiOptions)}
-            />
-          </Grid>
+      <Grid container spacing={1}>
+        <Grid item sm={6}>
+          <TextField
+            type="numeric"
+            className={classes.textField}
+            error={hasErrors(["price"])}
+            fullWidth
+            helperText={getFirstErrorMessage(["price"]) || i18next.t("admin.helpText.price")}
+            label={i18next.t("productVariant.price")}
+            placeholder="0.00"
+            {...getInputProps("price", muiOptions)}
+          />
         </Grid>
-      </div>
+        <Grid item sm={6}>
+          <TextField
+            type="numeric"
+            className={classes.textField}
+            error={hasErrors(["compareAtPrice.amount"])}
+            fullWidth
+            helperText={getFirstErrorMessage(["compareAtPrice.amount"]) || i18next.t("admin.helpText.compareAtPrice")}
+            label={i18next.t("productVariant.compareAtPrice")}
+            placeholder="0.00"
+            {...getInputProps("compareAtPrice.amount", muiOptions)}
+          />
+        </Grid>
+      </Grid>
     );
   };
 
@@ -116,7 +114,7 @@ const VariantPricesForm = React.forwardRef((props, ref) => {
           submitForm();
         }}
       >
-        {this.renderPrices_}
+        {renderPrices_}
         <Grid container spacing={1}>
           <Grid item sm={12}>
             <TextField
