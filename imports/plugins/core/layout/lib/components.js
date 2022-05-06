@@ -27,7 +27,7 @@ export function getComponent(name) {
   try {
     component = newGetComponent(name);
   } catch (error) {
-    console.log("Component not found");
+    // console.log("Component not found");
   }
 
   return component;
