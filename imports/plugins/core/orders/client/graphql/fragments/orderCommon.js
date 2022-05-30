@@ -12,6 +12,11 @@ export const orderCommonFragment = gql`
     email
     fulfillmentGroups {
       _id
+      picktimes {
+        time
+        note
+      }
+      ids
       data {
         ... on ShippingOrderFulfillmentGroupData {
           shippingAddress {
@@ -31,6 +36,50 @@ export const orderCommonFragment = gql`
         }
       }
       displayStatus(language: $language)
+      catalogs {
+        nodes {
+          _id
+          productId
+          createdAt
+          updatedAt
+          addedAt
+          price {
+            amount
+            currency {
+              code
+            }
+            displayAmount
+          }
+          quantity
+          subtotal {
+            amount
+            currency {
+              code
+            }
+            displayAmount
+          }
+          title
+          itemx {
+            _id
+            label
+            value
+            quantity
+            isVariant
+            subtotal {
+              amount
+            }
+            options {
+              _id
+              label
+              value
+              quantity
+              subtotal {
+                amount
+              }
+            }
+          }
+        }
+      }
       items {
         nodes {
           _id

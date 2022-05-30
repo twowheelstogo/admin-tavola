@@ -14,41 +14,54 @@ import {
   CircularProgress,
   FormControlLabel,
   Grid,
-  Switch
+  Switch,
 } from "@material-ui/core";
 import useShopSettings from "../hooks/useShopSettings";
 
 const shopSettings = new SimpleSchema({
-  "allowGuestCheckout": {
+  allowGuestCheckout: {
     type: Boolean,
-    optional: true
+    optional: true,
   },
-  "name": {
-    type: String,
-    min: 1
+  allowMobile: {
+    type: Boolean,
+    optional: true,
   },
-  "emails": {
+  geo: {
+    type: Object,
+    optional: true,
+  },
+  "geo.coordinates": {
     type: Array,
-    optional: true
+    optional: true,
+  },
+  "geo.coordinates.$": { type: Number },
+  name: {
+    type: String,
+    min: 1,
+  },
+  emails: {
+    type: Array,
+    optional: true,
   },
   "emails.$": new SimpleSchema({
     address: {
       type: String,
-      regEx: SimpleSchema.RegEx.Email
-    }
+      regEx: SimpleSchema.RegEx.Email,
+    },
   }),
-  "slug": {
+  slug: {
     type: String,
-    min: 1
+    min: 1,
   },
-  "description": {
+  description: {
     type: String,
-    optional: true
+    optional: true,
   },
-  "keywords": {
+  keywords: {
     type: String,
-    optional: true
-  }
+    optional: true,
+  },
 });
 
 const validator = shopSettings.getFormValidator();
@@ -60,14 +73,15 @@ const validator = shopSettings.getFormValidator();
 export default function ShopSettings() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { loading, onUpdateShop, shop } = useShopSettings();
-  const {
-    getFirstErrorMessage,
-    getInputProps,
-    hasErrors,
-    isDirty,
-    submitForm
-  } = useReactoForm({
+  const { getFirstErrorMessage, getInputProps, hasErrors, isDirty, submitForm } = useReactoForm({
     async onSubmit(formData) {
+      if (formData.geo) {
+        if (formData.geo.coordinates)
+          formData.geo.coordinates = formData.geo.coordinates
+            .filter((c) => (c || "").toString().trim() !== "")
+            .map(parseFloat);
+        delete formData.geo.__typename;
+      }
       setIsSubmitting(true);
       await onUpdateShop(shopSettings.clean(formData));
       setIsSubmitting(false);
@@ -75,7 +89,7 @@ export default function ShopSettings() {
     validator(formData) {
       return validator(shopSettings.clean(formData));
     },
-    value: shop
+    value: shop,
   });
 
   if (loading) {
@@ -149,13 +163,49 @@ export default function ShopSettings() {
             />
           </Grid>
           <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Switch color="primary" />
-              }
-              label={i18next.t("admin.settings.shop.allowGuestCheckout")}
-              {...getInputProps("allowGuestCheckout", muiCheckboxOptions)}
-            />
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  type="numeric"
+                  error={hasErrors(["geo.coordinates[0]"])}
+                  fullWidth
+                  helperText={getFirstErrorMessage(["geo.coordinates[0]"])}
+                  label={i18next.t("admin.settings.shop.latitude", "Latitude")}
+                  placeholder={i18next.t("admin.settings.shop.latitude", "Latitude")}
+                  {...getInputProps("geo.coordinates[0]", muiOptions)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  type="numeric"
+                  error={hasErrors(["geo.coordinates[1]"])}
+                  fullWidth
+                  helperText={getFirstErrorMessage(["geo.coordinates[1]"])}
+                  label={i18next.t("admin.settings.shop.longitude", "Longitude")}
+                  placeholder={i18next.t("admin.settings.shop.longitude", "Longitude")}
+                  {...getInputProps("geo.coordinates[1]", muiOptions)}
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid item xs={12}>
+            <Grid container>
+              <Grid item xs={6}>
+                <FormControlLabel
+                  control={<Switch color="primary" />}
+                  label={i18next.t("admin.settings.shop.allowGuestCheckout")}
+                  {...getInputProps("allowGuestCheckout", muiCheckboxOptions)}
+                />
+              </Grid>
+              <Grid item xs={6} style={{ textAlign: "right" }}>
+                <FormControlLabel
+                  labelPlacement="start"
+                  control={<Switch color="primary" />}
+                  label={i18next.t("admin.settings.shop.allowMobile", "On Mobile")}
+                  {...getInputProps("allowMobile", muiCheckboxOptions)}
+                />
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
         <Box textAlign="right">

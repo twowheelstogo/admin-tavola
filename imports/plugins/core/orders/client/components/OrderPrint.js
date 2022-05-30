@@ -9,37 +9,37 @@ import { i18next } from "/client/api";
 import useCurrentShopId from "/imports/client/ui/hooks/useCurrentShopId";
 
 const useStyles = makeStyles((theme) => ({
-  "dividerSpacing": {
-    marginTop: theme.spacing(4)
+  dividerSpacing: {
+    marginTop: theme.spacing(4),
   },
-  "extraEmphasisText": {
-    fontWeight: theme.typography.fontWeightSemiBold
+  extraEmphasisText: {
+    fontWeight: theme.typography.fontWeightSemiBold,
   },
-  "gridContainer": {
+  gridContainer: {
     border: `solid 1px ${theme.palette.colors.black}`,
     marginBottom: theme.spacing(8),
     marginLeft: "auto",
     marginRight: "auto",
     maxWidth: "960px",
-    width: "960px"
+    width: "960px",
   },
-  "iconButton": {
-    marginRight: "10px"
+  iconButton: {
+    marginRight: "10px",
   },
   "@media print": {
     "@global": {
       html: {
-        visibility: "hidden"
-      }
+        visibility: "hidden",
+      },
     },
-    "gridContainer": {
+    gridContainer: {
       visibility: "visible",
       display: "block",
       position: "absolute",
       top: "0",
-      left: "0"
-    }
-  }
+      left: "0",
+    },
+  },
 }));
 
 /**
@@ -61,20 +61,13 @@ function OrderPrint(props) {
         <Grid item xs={12}>
           <Grid container alignItems="center" direction="row" justify="space-between">
             <Grid item>
-              <Button
-                href={`/${currentShopId}/orders/${order.referenceId}`}
-              >
+              <Button href={`/${currentShopId}/orders/${order.referenceId}`}>
                 <ChevronLeftIcon className={classes.iconButton} />
                 Back
               </Button>
             </Grid>
             <Grid item>
-              <Button
-                color="primary"
-                onClick={() => window.print()}
-                size="large"
-                variant="contained"
-              >
+              <Button color="primary" onClick={() => window.print()} size="large" variant="contained">
                 {i18next.t("admin.orderWorkflow.invoice.printInvoice")}
               </Button>
             </Grid>
@@ -86,12 +79,27 @@ function OrderPrint(props) {
             <Grid item xs={12}>
               <Grid container>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="h1" paragraph>{order.shop.name}</Typography>
+                  <Typography variant="h1" paragraph>
+                    {order.shop.name}
+                  </Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="h2" paragraph>Order Invoice</Typography>
-                  <Typography variant="h4" display="inline">Order ID: </Typography><Typography variant="body1" display="inline">{order.referenceId}</Typography><br />
-                  <Typography variant="h4" display="inline">Date: </Typography><Typography variant="body1" display="inline">{orderDate}</Typography>
+                  <Typography variant="h2" paragraph>
+                    Order Invoice
+                  </Typography>
+                  <Typography variant="h4" display="inline">
+                    Order ID:{" "}
+                  </Typography>
+                  <Typography variant="body1" display="inline">
+                    {order.referenceId}
+                  </Typography>
+                  <br />
+                  <Typography variant="h4" display="inline">
+                    Date:{" "}
+                  </Typography>
+                  <Typography variant="body1" display="inline">
+                    {orderDate}
+                  </Typography>
                 </Grid>
               </Grid>
               <Divider className={classes.dividerSpacing} />
@@ -99,12 +107,33 @@ function OrderPrint(props) {
 
             <Grid item xs={12}>
               <Grid container>
+                {fulfillmentGroup.type === "pickup" ? (
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="h2" paragraph>
+                      Pick Ups
+                    </Typography>
+                    <ul>
+                      {(fulfillmentGroups[0].picktimes || []).map((pickup) => (
+                        <li>
+                          <Typography paragraph variant="h5">
+                            {moment(pickup.time).format("DD/MM/YYYY HH:mm")}
+                          </Typography>
+                        </li>
+                      ))}
+                    </ul>
+                  </Grid>
+                ) : (
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="h2" paragraph>
+                      Shipping address
+                    </Typography>
+                    <Address address={fulfillmentGroups[0].data.shippingAddress} />
+                  </Grid>
+                )}
                 <Grid item xs={12} md={6}>
-                  <Typography variant="h2" paragraph>Shipping address</Typography>
-                  <Address address={fulfillmentGroups[0].data.shippingAddress} />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h2" paragraph>Billing address</Typography>
+                  <Typography variant="h2" paragraph>
+                    Billing address
+                  </Typography>
                   <Address address={fulfillmentGroups[0].data.shippingAddress} />
                 </Grid>
               </Grid>
@@ -112,7 +141,9 @@ function OrderPrint(props) {
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="h2" paragraph>Payments</Typography>
+              <Typography variant="h2" paragraph>
+                Payments
+              </Typography>
               <Grid container spacing={4}>
                 {order.payments.map((payment, index) => {
                   const { amount, displayName, processor, transactionId } = payment;
@@ -120,15 +151,9 @@ function OrderPrint(props) {
                     <Grid item xs={12} key={index}>
                       <Grid container>
                         <Grid item xs={6} md={6}>
-                          <Typography variant="h4">
-                            {displayName}
-                          </Typography>
-                          <Typography variant="body2">
-                          Processor: {processor}
-                          </Typography>
-                          <Typography variant="body2">
-                          Transaction ID: {transactionId}
-                          </Typography>
+                          <Typography variant="h4">{displayName}</Typography>
+                          <Typography variant="body2">Processor: {processor}</Typography>
+                          <Typography variant="body2">Transaction ID: {transactionId}</Typography>
                         </Grid>
                         <Grid item xs={6} md={6}>
                           <Typography variant="body1" align="right">
@@ -144,7 +169,9 @@ function OrderPrint(props) {
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="h2" paragraph>Fulfillment</Typography>
+              <Typography variant="h2" paragraph>
+                Fulfillment
+              </Typography>
               <Grid container spacing={6}>
                 {fulfillmentGroups.map((fulfillmentGroup, index) => {
                   const currentGroupCount = index + 1;
@@ -153,11 +180,15 @@ function OrderPrint(props) {
                       <Grid container alignItems="center">
                         <Grid item xs={12}>
                           <Typography variant="h3">
-                            {i18next.t("order.fulfillmentGroupHeader", `Fulfillment group ${currentGroupCount} of ${fulfillmentGroups.length}`)}
+                            {i18next.t(
+                              "order.fulfillmentGroupHeader",
+                              `Fulfillment group ${currentGroupCount} of ${fulfillmentGroups.length}`
+                            )}
                           </Typography>
                           <Typography variant="body2">
                             <span className={classes.extraEmphasisText}>Shipping method: </span>
-                            {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.carrier} - {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.displayName}
+                            {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.carrier} -{" "}
+                            {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.displayName}
                           </Typography>
                           <Typography variant="body2" paragraph>
                             <span className={classes.extraEmphasisText}>Tracking number: </span>
@@ -171,18 +202,10 @@ function OrderPrint(props) {
                             <Grid container>
                               <Grid item xs={6} md={6}>
                                 <Grid item xs={12} md={12}>
-                                  <Typography variant="h4">
-                                    {item.title}
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {item.productVendor}
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {item.variantTitle}
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    Quantity: {item.quantity}
-                                  </Typography>
+                                  <Typography variant="h4">{item.title}</Typography>
+                                  <Typography variant="body2">{item.productVendor}</Typography>
+                                  <Typography variant="body2">{item.variantTitle}</Typography>
+                                  <Typography variant="body2">Quantity: {item.quantity}</Typography>
                                 </Grid>
                               </Grid>
                               <Grid item xs={6} md={6}>
@@ -208,39 +231,17 @@ function OrderPrint(props) {
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="h2" paragraph>Summary</Typography>
+              <Typography variant="h2" paragraph>
+                Summary
+              </Typography>
               <Grid container>
                 <Grid item xs={6}>
-                  {order.summary.itemTotal &&
-                    <Typography variant="body1">
-                      Items
-                    </Typography>
-                  }
-                  {order.summary.fulfillmentTotal &&
-                    <Typography variant="body1">
-                      Shipping
-                    </Typography>
-                  }
-                  {order.summary.taxTotal &&
-                    <Typography variant="body1">
-                      Tax
-                    </Typography>
-                  }
-                  {order.summary.discountTotal &&
-                    <Typography variant="body1">
-                      Discounts
-                    </Typography>
-                  }
-                  {order.summary.surchargeTotal &&
-                    <Typography variant="body1">
-                      Surcharges
-                    </Typography>
-                  }
-                  {order.summary.total &&
-                    <Typography variant="body1">
-                      Total
-                    </Typography>
-                  }
+                  {order.summary.itemTotal && <Typography variant="body1">Items</Typography>}
+                  {order.summary.fulfillmentTotal && <Typography variant="body1">Shipping</Typography>}
+                  {order.summary.taxTotal && <Typography variant="body1">Tax</Typography>}
+                  {order.summary.discountTotal && <Typography variant="body1">Discounts</Typography>}
+                  {order.summary.surchargeTotal && <Typography variant="body1">Surcharges</Typography>}
+                  {order.summary.total && <Typography variant="body1">Total</Typography>}
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body1" align="right">
@@ -278,7 +279,7 @@ function OrderPrint(props) {
 
 OrderPrint.propTypes = {
   classes: PropTypes.object,
-  order: PropTypes.object
+  order: PropTypes.object,
 };
 
 export default OrderPrint;

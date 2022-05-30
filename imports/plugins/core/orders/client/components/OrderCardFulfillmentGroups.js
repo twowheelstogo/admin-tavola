@@ -15,56 +15,66 @@ import { i18next, Reaction } from "/client/api";
 import ConfirmButton from "/imports/client/ui/components/ConfirmButton";
 import cancelOrderItemMutation from "../graphql/mutations/cancelOrderItem";
 import OrderCardFulfillmentGroupItem from "./OrderCardFulfillmentGroupItem";
+import OrderCardFulfillmentGroupCatalog from "./OrderCardFulfillmentGroupCatalog.js";
 import OrderCardFulfillmentGroupTrackingNumber from "./OrderCardFulfillmentGroupTrackingNumber";
 import OrderCardFulfillmentGroupStatusButton from "./OrderCardFulfillmentGroupStatusButton";
 import OrderStatusChip from "./OrderStatusChip";
+import moment from "moment";
+import { Meteor } from "meteor/meteor";
+const { orderShowItems = false } = Meteor.settings.public;
 
 const styles = (theme) => ({
   fulfillmentGroupHeader: {
-    marginBottom: theme.spacing(4)
+    marginBottom: theme.spacing(4),
   },
   verticalDivider: {
     backgroundColor: theme.palette.colors.black10,
     height: "100%",
     margin: "auto",
-    width: "1px"
+    width: "1px",
   },
   [theme.breakpoints.up("md")]: {
     gridItemNeedingDivider: {
       maxWidth: "46%",
-      flexBasis: "46%"
+      flexBasis: "46%",
     },
     gridItemWithDivider: {
       maxWidth: "4%",
-      flexBasis: "4%"
-    }
-  }
+      flexBasis: "4%",
+    },
+  },
 });
 
 class OrderCardFulfillmentGroups extends Component {
   static propTypes = {
     classes: PropTypes.object,
     history: PropTypes.shape({
-      push: PropTypes.func
+      push: PropTypes.func,
     }),
     order: PropTypes.shape({
       _id: PropTypes.string,
-      fulfillmentGroups: PropTypes.arrayOf(PropTypes.shape({
-        _id: PropTypes.string,
-        items: PropTypes.object,
-        selectedFulfillmentOption: PropTypes.shape({
-          fulfillmentMethod: PropTypes.shape({
-            carrier: PropTypes.string
-          })
-        }),
-        status: PropTypes.string
-      })),
-      referenceId: PropTypes.string
-    })
+      fulfillmentGroups: PropTypes.arrayOf(
+        PropTypes.shape({
+          _id: PropTypes.string,
+          items: PropTypes.object,
+          selectedFulfillmentOption: PropTypes.shape({
+            fulfillmentMethod: PropTypes.shape({
+              carrier: PropTypes.string,
+            }),
+          }),
+          status: PropTypes.string,
+        })
+      ),
+      referenceId: PropTypes.string,
+    }),
   };
 
   handleCancelFulfillmentGroup(mutation, fulfillmentGroup) {
-    const hasPermission = Reaction.hasPermission(["reaction:legacy:orders/update"], Reaction.getUserId(), Reaction.getShopId());
+    const hasPermission = Reaction.hasPermission(
+      ["reaction:legacy:orders/update"],
+      Reaction.getUserId(),
+      Reaction.getShopId()
+    );
 
     if (hasPermission) {
       const { order } = this.props;
@@ -76,8 +86,8 @@ class OrderCardFulfillmentGroups extends Component {
             cancelQuantity: item.quantity,
             itemId: item._id,
             orderId: order._id,
-            reason: "Fulfillment group cancelled via Catalyst"
-          }
+            reason: "Fulfillment group cancelled via Catalyst",
+          },
         });
       });
     }
@@ -88,10 +98,14 @@ class OrderCardFulfillmentGroups extends Component {
   }
 
   renderCancelFulfillmentGroupButton = (fulfillmentGroup) => {
-    const hasPermission = Reaction.hasPermission(["reaction:legacy:orders/update"], Reaction.getUserId(), Reaction.getShopId());
+    const hasPermission = Reaction.hasPermission(
+      ["reaction:legacy:orders/update"],
+      Reaction.getUserId(),
+      Reaction.getShopId()
+    );
 
     if (hasPermission) {
-      const canCancelOrder = (fulfillmentGroup.status !== "coreOrderWorkflow/canceled");
+      const canCancelOrder = fulfillmentGroup.status !== "coreOrderWorkflow/canceled";
 
       if (canCancelOrder) {
         return (
@@ -116,7 +130,7 @@ class OrderCardFulfillmentGroups extends Component {
     }
 
     return null;
-  }
+  };
 
   renderFulfillmentGroupItems(fulfillmentGroup) {
     return fulfillmentGroup.items.nodes.map((item) => (
@@ -125,15 +139,19 @@ class OrderCardFulfillmentGroups extends Component {
       </Grid>
     ));
   }
+  renderFulfillmentGroupCatalogs(fulfillmentGroup) {
+    return fulfillmentGroup.catalogs.nodes.map((catalog) => (
+      <Grid key={catalog._id} item xs={12}>
+        <OrderCardFulfillmentGroupCatalog catalog={catalog} />
+      </Grid>
+    ));
+  }
 
   renderPrintShippingLabelLink = (fulfillmentGroup) => {
     if (fulfillmentGroup.shippingLabelUrl) {
       return (
         <Grid item>
-          <Button
-            onClick={this.handlePrintShippingLabel(fulfillmentGroup)}
-            variant="text"
-          >
+          <Button onClick={this.handlePrintShippingLabel(fulfillmentGroup)} variant="text">
             {i18next.t("admin.fulfillmentGroups.printShippingLabel", "Print shipping label")}
           </Button>
         </Grid>
@@ -141,12 +159,16 @@ class OrderCardFulfillmentGroups extends Component {
     }
 
     return null;
-  }
+  };
 
   renderUpdateFulfillmentGroupStatusButton = (fulfillmentGroup) => {
-    const hasPermission = Reaction.hasPermission(["reaction:legacy:orders/update"], Reaction.getUserId(), Reaction.getShopId());
+    const hasPermission = Reaction.hasPermission(
+      ["reaction:legacy:orders/update"],
+      Reaction.getUserId(),
+      Reaction.getShopId()
+    );
     const { order } = this.props;
-    const canUpdateFulfillmentStatus = (fulfillmentGroup.status !== "coreOrderWorkflow/canceled");
+    const canUpdateFulfillmentStatus = fulfillmentGroup.status !== "coreOrderWorkflow/canceled";
 
     if (hasPermission && canUpdateFulfillmentStatus) {
       return (
@@ -157,7 +179,7 @@ class OrderCardFulfillmentGroups extends Component {
     }
 
     return null;
-  }
+  };
 
   render() {
     const { classes, order } = this.props;
@@ -166,7 +188,11 @@ class OrderCardFulfillmentGroups extends Component {
 
     return fulfillmentGroups.map((fulfillmentGroup, index) => {
       const currentGroupCount = index + 1;
-      const { data: { shippingAddress }, displayStatus, status } = fulfillmentGroup;
+      const {
+        data: { shippingAddress },
+        displayStatus,
+        status,
+      } = fulfillmentGroup;
 
       return (
         <Grid container key={fulfillmentGroup._id} spacing={4}>
@@ -178,11 +204,19 @@ class OrderCardFulfillmentGroups extends Component {
                     <Grid container alignItems="center" spacing={2}>
                       <Grid item>
                         <Typography variant="h4" display="inline">
-                          {i18next.t("order.fulfillmentGroupHeader", `Fulfillment group ${currentGroupCount} of ${totalGroupsCount}`)}
+                          {i18next.t(
+                            "order.fulfillmentGroupHeader",
+                            `Fulfillment group ${currentGroupCount} of ${totalGroupsCount}`
+                          )}
                         </Typography>
                       </Grid>
                       <Grid item>
-                        <OrderStatusChip displayStatus={displayStatus} status={status} type="shipment" variant="contained" />
+                        <OrderStatusChip
+                          displayStatus={displayStatus}
+                          status={status}
+                          type="shipment"
+                          variant="contained"
+                        />
                       </Grid>
                     </Grid>
                   </Grid>
@@ -196,11 +230,15 @@ class OrderCardFulfillmentGroups extends Component {
                 </Grid>
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={12}>
-                    <Typography variant="h4">{i18next.t("order.items", "Items")}</Typography>
+                    <Typography variant="h4">
+                      {orderShowItems ? i18next.t("order.items", "Items") : i18next.t("order.catalogs", "Catalogs")}
+                    </Typography>
                   </Grid>
                   <Grid className={classes.gridItemNeedingDivider} item xs={12} md={5}>
                     <Grid container spacing={5}>
-                      {this.renderFulfillmentGroupItems(fulfillmentGroup)}
+                      {orderShowItems
+                        ? this.renderFulfillmentGroupItems(fulfillmentGroup)
+                        : this.renderFulfillmentGroupCatalogs(fulfillmentGroup)}
                     </Grid>
                   </Grid>
                   <Hidden only={["xs", "sm"]}>
@@ -214,31 +252,53 @@ class OrderCardFulfillmentGroups extends Component {
                     </Grid>
                   </Hidden>
                   <Grid className={classes.gridItemNeedingDivider} item xs={12} md={5}>
-                    <Grid container spacing={4}>
-                      <Grid item xs={12} md={12}>
-                        <Typography paragraph variant="h4">
-                          {i18next.t("order.shippingAddress", "Shipping address")}
-                        </Typography>
-                        <Address address={shippingAddress} />
+                    {fulfillmentGroup.type === "pickup" ? (
+                      <Grid container spacing={4}>
+                        <Grid item xs={12} md={12}>
+                          <Typography paragraph variant="h4">
+                            {i18next.t("order.pickups", "Pick Ups")}
+                          </Typography>
+                          <ul>
+                            {(fulfillmentGroup.picktimes || []).map((pickup) => (
+                              <li>
+                                <Typography paragraph variant="h5">
+                                  {moment(pickup.time).format("DD/MM/YYYY HH:mm")}
+                                </Typography>
+                              </li>
+                            ))}
+                          </ul>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} md={12}>
-                        <Typography paragraph variant="h4">
-                          {i18next.t("order.shippingMethod", "Shipping method")}
-                        </Typography>
-                        <Typography
-                          key={fulfillmentGroup._id}
-                          variant="body1"
-                        >
-                          {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.carrier} - {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.displayName} {/* eslint-disable-line */}
-                        </Typography>
+                    ) : (
+                      <Grid container spacing={4}>
+                        <Grid item xs={12} md={12}>
+                          <Typography paragraph variant="h4">
+                            {i18next.t("order.shippingAddress", "Shipping address")}
+                          </Typography>
+                          <Address address={shippingAddress} />
+                        </Grid>
+                        <Grid item xs={12} md={12}>
+                          <Typography paragraph variant="h4">
+                            {i18next.t("order.shippingMethod", "Shipping method")}
+                          </Typography>
+                          <Typography key={fulfillmentGroup._id} variant="body1">
+                            {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.carrier} -{" "}
+                            {fulfillmentGroup.selectedFulfillmentOption.fulfillmentMethod.displayName}{" "}
+                            {/* eslint-disable-line */}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} md={12}>
+                          <Typography paragraph variant="h4">
+                            {i18next.t("order.trackingNumber", "Tracking number")}
+                          </Typography>
+                          <OrderCardFulfillmentGroupTrackingNumber
+                            orderId={order._id}
+                            fulfillmentGroup={fulfillmentGroup}
+                            {...this.props}
+                          />
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} md={12}>
-                        <Typography paragraph variant="h4">
-                          {i18next.t("order.trackingNumber", "Tracking number")}
-                        </Typography>
-                        <OrderCardFulfillmentGroupTrackingNumber orderId={order._id} fulfillmentGroup={fulfillmentGroup} {...this.props} />
-                      </Grid>
-                    </Grid>
+                    )}
                   </Grid>
                 </Grid>
               </CardContent>

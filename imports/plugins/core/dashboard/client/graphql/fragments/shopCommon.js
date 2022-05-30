@@ -3,6 +3,8 @@ import gql from "graphql-tag";
 export default gql`
  fragment ShopCommon on Shop {
     _id
+    allowMobile
+    geo{ coordinates }
     allowGuestCheckout
     addressBook {
       company

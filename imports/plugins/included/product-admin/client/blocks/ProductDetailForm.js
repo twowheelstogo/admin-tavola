@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import i18next from "i18next";
+import { upperFirst } from "lodash";
 import {
   Card,
   CardContent,
@@ -9,7 +10,7 @@ import {
   Button,
   Box,
   MenuItem,
-  makeStyles
+  makeStyles,
 } from "@material-ui/core";
 import useReactoForm from "reacto-form/cjs/useReactoForm";
 import SimpleSchema from "simpl-schema";
@@ -19,46 +20,52 @@ import CountryOptions from "@reactioncommerce/api-utils/CountryOptions.js";
 import { TextField, useConfirmDialog } from "@reactioncommerce/catalyst";
 import useGenerateSitemaps from "/imports/plugins/included/sitemap-generator/client/hooks/useGenerateSitemaps";
 import useProduct from "../hooks/useProduct";
+import Autocomplete from "/plugins/client/autocomplete/index.js";
 
 const useStyles = makeStyles((theme) => ({
   card: {
-    marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
   },
   textField: {
     marginBottom: theme.spacing(4),
-    minWidth: 350
-  }
+    minWidth: 350,
+  },
 }));
 
 const formSchema = new SimpleSchema({
   title: {
     type: String,
-    optional: false
+    optional: false,
   },
   permalink: {
     type: String,
-    optional: true
+    optional: true,
   },
   pageTitle: {
     type: String,
-    optional: true
+    optional: true,
   },
   vendor: {
     type: String,
-    optional: true
+    optional: true,
   },
   description: {
     type: String,
-    optional: true
+    optional: true,
   },
   originCountry: {
     type: String,
-    optional: true
+    optional: true,
   },
   shouldAppearInSitemap: {
     type: Boolean,
-    optional: true
-  }
+    optional: true,
+  },
+  supportedFulfillmentTypes: {
+    type: Array,
+    optional: true,
+  },
+  "supportedFulfillmentTypes.$": String,
 });
 
 const validator = formSchema.getFormValidator();
@@ -72,44 +79,30 @@ const ProductDetailForm = React.forwardRef((props, ref) => {
   const classes = useStyles();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    onUpdateProduct,
-    product,
-    shopId
-  } = useProduct();
+  const { onUpdateProduct, product, shopId } = useProduct();
 
   const { generateSitemaps } = useGenerateSitemaps(shopId);
-  const {
-    openDialog: openGenerateSitemapsConfirmDialog,
-    ConfirmDialog: GenerateSitemapsConfirmDialog
-  } = useConfirmDialog({
-    title: i18next.t("productDetailEdit.refreshSitemap", { defaultValue: "Refresh sitemap now?" }),
-    cancelActionText: i18next.t("productDetailEdit.refreshSitemapNo", { defaultValue: "No, don't refresh" }),
-    confirmActionText: i18next.t("productDetailEdit.refreshSitemapYes", { defaultValue: "Yes, refresh" }),
-    onConfirm: () => {
-      generateSitemaps();
-    }
-  });
-
+  const { openDialog: openGenerateSitemapsConfirmDialog, ConfirmDialog: GenerateSitemapsConfirmDialog } =
+    useConfirmDialog({
+      title: i18next.t("productDetailEdit.refreshSitemap", { defaultValue: "Refresh sitemap now?" }),
+      cancelActionText: i18next.t("productDetailEdit.refreshSitemapNo", { defaultValue: "No, don't refresh" }),
+      confirmActionText: i18next.t("productDetailEdit.refreshSitemapYes", { defaultValue: "Yes, refresh" }),
+      onConfirm: () => {
+        generateSitemaps();
+      },
+    });
 
   let content;
 
-  const {
-    getFirstErrorMessage,
-    getInputProps,
-    hasErrors,
-    isDirty,
-    submitForm
-  } = useReactoForm({
+  const { getFirstErrorMessage, getInputProps, hasErrors, isDirty, submitForm } = useReactoForm({
     async onSubmit(formData) {
       const shouldConformSitemapGenerate =
-        formData.shouldAppearInSitemap !== product.shouldAppearInSitemap
-        && formData.isVisible && !formData.isDeleted;
+        formData.shouldAppearInSitemap !== product.shouldAppearInSitemap && formData.isVisible && !formData.isDeleted;
 
       setIsSubmitting(true);
 
       await onUpdateProduct({
-        product: formSchema.clean(formData)
+        product: formSchema.clean(formData),
       });
 
       if (shouldConformSitemapGenerate) {
@@ -121,11 +114,15 @@ const ProductDetailForm = React.forwardRef((props, ref) => {
     validator(formData) {
       return validator(formSchema.clean(formData));
     },
-    value: product
+    value: product,
   });
 
   const originCountryInputProps = getInputProps("originCountry", muiOptions);
-
+  const supportedFulfillmentTypesInputProps = getInputProps("supportedFulfillmentTypes", muiOptions);
+  const supportedFulfillments = ["shipping", "pickup", "digital"].reduce(
+    (p, c) => ({ ...p, [c]: i18next.t(`productDetailEdit.${c}`, upperFirst(c)) }),
+    {}
+  );
   if (product) {
     content = (
       <form
@@ -193,18 +190,31 @@ const ProductDetailForm = React.forwardRef((props, ref) => {
             </MenuItem>
           ))}
         </TextField>
+        <Autocomplete
+          id={supportedFulfillmentTypesInputProps.id}
+          name="supportedFulfillmentTypes"
+          i18nLabel={i18next.t("productDetailEdit.supportedFulfillmentTypes", "SupportedFulfillmentTypes")}
+          i18nDef="SupportedFulfillmentTypes"
+          options={Object.entries(supportedFulfillments).map(([value, label]) => ({ value, label }))}
+          onSelection={(chosen) => {
+            try {
+              supportedFulfillmentTypesInputProps.onChange({
+                target: { value: chosen && chosen.length ? chosen.map((o) => o.value) : [] },
+              });
+            } catch (error) {}
+          }}
+          value={(supportedFulfillmentTypesInputProps.value || []).map((value) => ({
+            value,
+            label: supportedFulfillments[value],
+          }))}
+        />
         <FormControlLabel
           label={i18next.t("productDetailEdit.shouldAppearInSitemap")}
           control={<Checkbox />}
           {...getInputProps("shouldAppearInSitemap", muiCheckboxOptions)}
         />
         <Box textAlign="right">
-          <Button
-            color="primary"
-            disabled={!isDirty || isSubmitting}
-            variant="contained"
-            type="submit"
-          >
+          <Button color="primary" disabled={!isDirty || isSubmitting} variant="contained" type="submit">
             {i18next.t("app.saveChanges")}
           </Button>
         </Box>
@@ -216,9 +226,7 @@ const ProductDetailForm = React.forwardRef((props, ref) => {
   return (
     <Card className={classes.card} ref={ref}>
       <CardHeader title={i18next.t("admin.productAdmin.details")} />
-      <CardContent>
-        {content}
-      </CardContent>
+      <CardContent>{content}</CardContent>
     </Card>
   );
 });
