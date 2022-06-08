@@ -15,13 +15,27 @@ export class AutoComplete extends Component {
     this.state = { statics: new Statics(props) };
     constructor(this, props);
   }
+  get allowedNew() {
+    return [this.props.onNew, this.props.allowedNew, !this.props.options].filter((h) => typeof h === "boolean")[0];
+  }
   _missing = (v) => ({ value: v, label: v, _missing: true });
   get defOptions() {
-    return [];
-    // options={this.props.statics.list(name, this)}
+    const nname = this.name
+      .replace(/\.(inp|out)$/, "")
+      .split(".")
+      .splice(-1)[0];
+    // if (["langs", "countries"].includes(nname)) {
+    //   console.info(`\n\n==> {  this.statics._statics[nname] }\n`, this.statics._statics[nname], `\n`, ``);
+    //   return this.statics._statics[nname] || [];
+    // }
+    return ((this.statics || {})._statics || {})[nname] || [];
   }
   get options() {
-    const res = this.props.options || this.defOptions;
+    const res =
+      this.props.options ||
+      (this.props.list
+        ? this.props.list.map((value) => ({ value, label: lodash.capitalize(value) }))
+        : this.defOptions);
     const val = this.value();
     if (val) {
       (Array.isArray(val) ? val : [val]).forEach((v) => {
@@ -43,9 +57,9 @@ export class AutoComplete extends Component {
 
   get getValue() {
     if (this.props.isMulti !== false) {
-      return this.value({ def: [] })
-        .map(this._search)
-        .filter((h) => h);
+      const val = this.value({ def: [] });
+      if (Array.isArray(val)) return val.map(this._search).filter((h) => h);
+      return [];
     }
     const val = this.value({ def: null });
     if (val) return this._search(val);
@@ -64,35 +78,37 @@ export class AutoComplete extends Component {
       onNew,
       onSelection,
       isMulti = true,
+      className,
       ...more
     } = this.props;
 
     return (
       <SelectMulti
+        className={`${classes.root} ${className}`}
         isMulti={isMulti}
         name={name}
         id={this.id}
-        isAsync={!!onNew}
+        isAsync={!!this.allowedNew}
         options={this.options}
         loadOptions={(writing) => {
-          return new Promise((resolver) => {
-            if (onNew && (writing || "").trim() !== "") {
-              return resolver(
-                this.options.concat([
-                  {
-                    value: writing.trim(),
-                    label: (
-                      <span>
-                        <FontAwesomeIcon color="red" icon={faPlus} /> <b>{lodash.capitalize(writing.trim())}</b>
-                      </span>
-                    ),
-                    _new: true,
-                  },
-                ])
-              );
-            }
-            resolver(this.options);
-          });
+          const cleaned = lodash.kebabCase((writing || "").trim());
+          if (cleaned === "") return this.options;
+          const res = this.options.filter((o) => lodash.kebabCase((o.value || "").toString().trim()).match(cleaned));
+          if (
+            this.allowedNew &&
+            (!res.length || !res.filter((o) => lodash.kebabCase((o.value || "").toString().trim()) === cleaned).length)
+          ) {
+            res.push({
+              value: writing.trim(),
+              label: (
+                <span>
+                  <FontAwesomeIcon color="red" icon={faPlus} /> <b>{lodash.capitalize(writing.trim())}</b>
+                </span>
+              ),
+              _new: true,
+            });
+          }
+          return new Promise((resolver) => resolver(res));
         }}
         onSelection={(chosen) => {
           if (isMulti) {

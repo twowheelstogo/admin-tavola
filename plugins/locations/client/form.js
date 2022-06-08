@@ -42,17 +42,17 @@ export class Location extends Component {
         {Location.list.map((r) => {
           return (
             <Grid key={r + this.props.uniqId} container spacing={1}>
-              {["in", "nin"].map((o) => {
+              {["inp", "out"].map((o) => {
                 const name = `${r}${o}`;
                 return (
                   <Grid key={name + this.props.uniqId} item xs={6}>
                     <Autocomplete
                       form={propsWithoutClasses.form}
-                      onForm={propsWithoutClasses.onForm}
+                      onReady={propsWithoutClasses.onReady}
                       uniqId={propsWithoutClasses.uniqId}
                       isMulti={true}
-                      name={`${this.props.path}${r}.${o}`}
-                      i18nDef={`${lodash.upperFirst(r)} ${{ in: "Includes", nin: "Excludes" }[o]}`}
+                      name={`${this.props.path}location.${r}.${o}`}
+                      i18nDef={`${lodash.upperFirst(r)} ${{ inp: "Includes", out: "Excludes" }[o]}`}
                       onNew={(value, chosen) => this.setNew({ name, value, chosen })}
                     />
                   </Grid>

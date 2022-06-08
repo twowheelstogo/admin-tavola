@@ -15,7 +15,7 @@ import { i18next, Reaction } from "/client/api";
 import ConfirmButton from "/imports/client/ui/components/ConfirmButton";
 import cancelOrderItemMutation from "../graphql/mutations/cancelOrderItem";
 import OrderCardFulfillmentGroupItem from "./OrderCardFulfillmentGroupItem";
-import OrderCardFulfillmentGroupCatalog from "./OrderCardFulfillmentGroupCatalog.js";
+import OrderCardFulfillmentGroupCatalog from "./OrderCardFulfillmentGroupCatalog";
 import OrderCardFulfillmentGroupTrackingNumber from "./OrderCardFulfillmentGroupTrackingNumber";
 import OrderCardFulfillmentGroupStatusButton from "./OrderCardFulfillmentGroupStatusButton";
 import OrderStatusChip from "./OrderStatusChip";
@@ -188,11 +188,7 @@ class OrderCardFulfillmentGroups extends Component {
 
     return fulfillmentGroups.map((fulfillmentGroup, index) => {
       const currentGroupCount = index + 1;
-      const {
-        data: { shippingAddress },
-        displayStatus,
-        status,
-      } = fulfillmentGroup;
+      const { displayStatus, status } = fulfillmentGroup;
 
       return (
         <Grid container key={fulfillmentGroup._id} spacing={4}>
@@ -275,7 +271,7 @@ class OrderCardFulfillmentGroups extends Component {
                           <Typography paragraph variant="h4">
                             {i18next.t("order.shippingAddress", "Shipping address")}
                           </Typography>
-                          <Address address={shippingAddress} />
+                          <Address address={(fulfillmentGroup.data || {}).shippingAddress || {}} />
                         </Grid>
                         <Grid item xs={12} md={12}>
                           <Typography paragraph variant="h4">
